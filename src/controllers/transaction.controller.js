@@ -7,7 +7,7 @@ const emailService = require('../services/email.service');
  * - Create a new transaction
  * THE 10-STEP TRANSFER FLOW: 
     * 1. Validate request
-    * 2. Validate idemotency key
+    * 2. Validate idempotency key
     * 3. Check account status
     * 4. Derive sender balance from ledger
     * 5. Create transaction (PENDING)
@@ -50,36 +50,62 @@ async function createTransaction(req, res) {
     /**
      * 2. Validate idempotency Key
      */
-
     const isTransactionAlreadyExists = await transactionModel.findOne({
         idempotencyKey: idempotencyKey
     })
 
     if (isTransactionAlreadyExists) {
         if (isTransactionAlreadyExists.status === "COMPLETED") {
-            res.status(200).json({
+            return res.status(200).json({
                 message: "Transaction already processed",
                 transaction: isTransactionAlreadyExists
             })
         }
 
         if (isTransactionAlreadyExists.status === "PENDING") {
-            res.status(200).json({
+            return res.status(200).json({
                 message: "Transaction is still processing"
             })
         }
 
         if (isTransactionAlreadyExists.status === "FAILED") {
-            res.status(500).json({
+            return res.status(500).json({
                 message: "Transaction processing failed, please retry"
             })
         }
 
         if (isTransactionAlreadyExists === "REVERSED") {
-            res.status(500).json({
+            return res.status(500).json({
                 message: "Transaction was reversed, please retry"
             })
         }
     }
+
+
+    /**
+     * 3. Check account status
+     */
+    if (fromUserAccount.status !== "ACTIVE" || toUserAccount.status !== "ACTIVE") {
+        return res.status(400).json({
+            message: "Both fromAccount and toAccount must be ACTIVE to process transaction"
+        })
+    }
+
+
+    /**
+     * 4.Derive sender balance from ledger
+     * - Need to check the balance of the sender.
+     * - aggregation pipeline.
+     */
+    const balance = await fromUserAccount.getBalance();
+
+    if(balance < amount ) {
+        res.status(400).json({
+            message: `Insufficient balance. Current balance is ${balance}. Requested amount is ${amount}`
+        })
+    }
+
+
+
 
 }
