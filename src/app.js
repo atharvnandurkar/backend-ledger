@@ -10,8 +10,17 @@ const app = express();  // creating server instance.
 app.use(express.json());
 app.use(cookieParser());
 
-const authRouter = require("./routes/auth.routes");  // Accessing the authRoutes.
 
+/**
+ * - Routes required
+ */
+const authRouter = require("./routes/auth.routes");  // Accessing the authRoutes.
+const accountRouter = require("./routes/account.routes");
+
+/**
+ * - Use Routes
+ */
 app.use("/api/auth", authRouter);
+app.use("/api/accounts", accountRouter);
 
 module.exports = app;
