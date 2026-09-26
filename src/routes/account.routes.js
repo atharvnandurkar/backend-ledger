@@ -19,7 +19,13 @@ router.post("/", authMiddleware.authMiddleware, accountContrroller.createAccount
  * - GET all accounts of the logged-in user
  * - Protected Route
  */
-router.post("/", authMiddleware.authMiddleware, accountContrroller.getUserAccountsController);
+router.get("/", authMiddleware.authMiddleware, accountContrroller.getUserAccountsController);
+
+
+/**
+ * - GET /api/accounts/balance/:accountId
+ */
+router.get("/balance/:accountId", authMiddleware.authMiddleware, accountContrroller.getAccountBalanceController);
 
 
 module.exports = router;
